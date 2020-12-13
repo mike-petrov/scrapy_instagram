@@ -1,4 +1,5 @@
 import scrapy
+from urllib.parse import urlencode
 API = '95413e818c49686b5d90a4bd8834bb54'
 
 def get_url(url):
