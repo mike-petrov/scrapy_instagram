@@ -6,6 +6,7 @@ from hashlib import sha256
 from hmac import HMAC
 from urllib.parse import urlparse, parse_qsl, urlencode
 from pymongo import MongoClient
+from functools import wraps
 import time
 import hashlib
 import datetime
@@ -60,7 +61,7 @@ def token_required(f):
 
 @app.route('/auth', methods=['POST'])
 def auth():
-    # try:
+    try:
         x = request.json
 
         query_params = dict(parse_qsl(urlparse(x['url']).query, keep_blank_values=True))
@@ -88,9 +89,63 @@ def auth():
             return jsonify(user)
         else:
             return jsonify({'server': 'error'}), 400
-    # except:
-        # return jsonify({'server': 'error'}), 400
+    except:
+        return jsonify({'server': 'error'}), 400
 
+@app.route('/parse/add', methods=['POST'])
+@token_required
+def parse_add(jwt):
+    try:
+        x = request.json
+
+        user = db.users.find_one({'vk_id': jwt['user_vk_id']}, {'_id': False})
+        if user:
+            parse_item = {
+                'account': x['text'],
+                'data': []
+            }
+
+            user['parse'].append(parse_item);
+            db.users.update_one({'vk_id': jwt['user_vk_id']}, { '$set': { 'parse': user['parse'] }})
+            return jsonify(user['parse'])
+        else:
+            return jsonify({'server': 'error'}), 400
+    except:
+        return jsonify({'server': 'error'}), 400
+
+@app.route('/parse/get', methods=['POST'])
+@token_required
+def parse_get(jwt):
+    try:
+        x = request.json
+
+        user = db.users.find_one({'vk_id': jwt['user_vk_id']}, {'_id': False, 'parse': True})
+        if user:
+            return jsonify(user['parse'])
+        else:
+            return jsonify({'server': 'error'}), 400
+    except:
+        return jsonify({'server': 'error'}), 400
+
+@app.route('/parse/delete', methods=['POST'])
+@token_required
+def parse_delete(jwt):
+    try:
+        x = request.json
+
+        user = db.users.find_one({'vk_id': jwt['user_vk_id']}, {'_id': False})
+        if user:
+
+            for i, parse_item in enumerate(user['parse']):
+                if parse_item['account'] == x['text']:
+                    del user['parse'][i]
+
+            db.users.update_one({'vk_id': jwt['user_vk_id']}, { '$set': { 'parse': user['parse'] }})
+            return jsonify(user['parse'])
+        else:
+            return jsonify({'server': 'error'}), 400
+    except:
+        return jsonify({'server': 'error'}), 400
 
 @app.route('/account', methods=['POST'])
 def get_account():
