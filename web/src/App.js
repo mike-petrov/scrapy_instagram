@@ -17,6 +17,7 @@ import {
 	SimpleCell,
 	Header,
 	Search,
+	Div,
 } from '@vkontakte/vkui';
 import {
 	Icon56CompassOutline,
@@ -42,7 +43,7 @@ const App = () => {
 	const [scheme, setScheme] = useState('client_light');
 	const [activeModal, setActiveModal] = useState(null);
 
-	const [parseList, setParseList] = useState(null);
+	const [parseList, setParseList] = useState([]);
 	const [inputAdd, setInputAdd] = useState('');
 	const [search, setSearch] = useState('');
 
@@ -78,8 +79,8 @@ const App = () => {
 
 			authUser({ url }, onPopup).then((e) => {
 				if (e.status !== 'error') {
-					setUser(e.result);
-					setParseList(e.result.parse);
+					setUser(e);
+					setParseList(e.parse);
 				} else if (e.type === 429) {
 					setTimeout(() => {
 						onPopup('429');
@@ -115,6 +116,7 @@ const App = () => {
 				id="add"
 				onClose={() => {
 					onModal();
+					setInputAdd('');
 				}}
 				header="Подписаться на парсинг аккаунта"
 				actions={[
@@ -127,10 +129,12 @@ const App = () => {
 							}, onPopup).then((e) => {
 								if (e.status !== 'error') {
 									onPopup('success', 'Успешно');
+									setParseList(e);
 								}
 								onModal();
 							});
 							onModal();
+							setInputAdd('');
 						},
 					},
 				]}
@@ -190,7 +194,7 @@ const App = () => {
 					<Panel id="home">
 						<PanelHeader>InstaParse</PanelHeader>
 						{console.log(parseList)}
-							{parseList === null ? (
+							{Object.keys(parseList).length === 0 ? (
 								<Placeholder
 			            icon={<Icon56CompassOutline />}
 			            action={<Button size="l" mode="tertiary" onClick={() => { onModal('add'); }}>Добавить</Button>}
@@ -214,13 +218,11 @@ const App = () => {
 																}, onPopup).then((e) => {
 																	if (e.status !== 'error') {
 																		onPopup('success', 'Успешно');
-
-																		parseList.slice(0, index);
-																		setParseList([prevParseList => parseList]);
+																		setParseList(e);
 																	}
 																});
-																parseList.splice(index, 1);
-																setParseList(prevParseList => ([...parseList]));
+																// parseList.splice(index, 1);
+																// setParseList(prevParseList => ([...parseList]));
 																bridge.send("VKWebAppTapticImpactOccurred", {"style": "medium"}).catch(() => {});
 																e.stopPropagation();
 															}}
@@ -232,12 +234,16 @@ const App = () => {
 		              </Group>
 									<Group header={<Header mode="secondary">Данные</Header>}>
 										<Search value={search} onChange={onSearch} after={null} />
-										{parseList.map((item) => (
+										{parseList.data && parseList.data.map((post) => (
 											<SimpleCell
-												before={<Avatar mode="image" src={item.data.image} />}
-												description={item.data.hashtag}
-											>{item.data.text}</SimpleCell>
+												key={post.text}
+												before={<Avatar mode="image" src={post.image} />}
+												description={post.hashtag}
+											>{post.text}</SimpleCell>
 										))}
+										{parseList.data && parseList.data.length === 0 && (
+											<Div>Данные еще не обновились</Div>
+										)}
 									</Group>
 								</>
 							)}

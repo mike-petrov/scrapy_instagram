@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const server = 'https://cors-anywhere.herokuapp.com/http://165.22.79.205/api';
+const server = 'https://cors-anywhere.herokuapp.com/http://104.248.137.87/api';
 let token = null;
 
 function serverRequest(link, json = {}, onPopup) {
@@ -39,6 +39,9 @@ function serverRequest(link, json = {}, onPopup) {
 export function authUser(json, onPopup) {
     return new Promise((resolve) => {
         serverRequest('/auth', json, onPopup).then((res) => {
+            if (res.data && res.data.token) {
+              token = res.data.token;
+            }
             resolve(res.data);
         });
     });
