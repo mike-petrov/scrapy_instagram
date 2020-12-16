@@ -1,0 +1,87 @@
+.snackbar_avatar .Avatar__children {
+    background-color: #3f8ae0;
+}
+
+.popup {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.popup_close_panel {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.popup_content {
+    position: absolute;
+    background: #fff;
+    border-radius: 6px;
+    z-index: 101;
+    padding: 10px;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+body[scheme='space_gray'] .popup_content {
+    background: #2b2d2e;
+}
+
+.popup_title {
+    font-weight: bold;
+    margin: 0 5px 10px;
+    color: #2ecc71;
+    font-size: 22px;
+    text-align: center;
+}
+
+.popup_subtitle {
+    margin: 16px 0 10px;
+    color: var(--text_primary);
+    font-size: 16px;
+    text-align: center;
+}
+
+.popup_subtitle:last-child {
+    margin: 8px 0 10px;
+}
+
+.popup_btn {
+    color: #fff;
+    background: #2ecc71;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    outline: 0px;
+    text-align: center;
+    border: 0px;
+    font-weight: bold;
+    border-radius: 4px;
+    position: relative;
+}
+
+.Snackbar {
+    z-index: 100 !important;
+}
+
+@media (max-width: 370px) {
+    .popup_content {
+        max-width: 260px;
+    }
+}
