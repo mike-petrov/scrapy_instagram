@@ -46,7 +46,7 @@ class InstagramSpider(scrapy.Spider):
                     'postURL': url,
                     'date_posted': date_posted,
                     'image_url': image_url,
-                    'captions': str(captions[:-1], 'utf-8')
+                    'captions': captions[:-1]
                 }
                 yield scrapy.Request(get_url(url), callback=self.get_video, meta={'item': item})
 
@@ -80,7 +80,7 @@ class InstagramSpider(scrapy.Spider):
                     'date_posted': date_posted,
                     'image_url': image_url,
                     'videoURL': video_url,
-                    'captions': str(captions[:-1], 'utf-8')
+                    'captions': captions[:-1]
                 }
                 yield item
 
