@@ -7,11 +7,15 @@ from hmac import HMAC
 from urllib.parse import urlparse, parse_qsl, urlencode
 from pymongo import MongoClient
 from functools import wraps
+import pycurl
+from io import StringIO
+import io
 import time
 import hashlib
 import datetime
 import requests
 import jwt
+import json
 import re
 
 from keys import DB
@@ -147,6 +151,16 @@ def parse_delete(jwt):
     except:
         return jsonify({'server': 'error'}), 400
 
-@app.route('/account', methods=['POST'])
-def get_account():
-    return jsonify({ 'server': 'true' })
+@app.route('/scrapy', methods=['POST'])
+def get_items():
+    curl_temp = pycurl.Curl()
+    io_temp = io.BytesIO()
+    curl_temp.setopt(curl_temp.URL, 'http://localhost:9080/crawl.json?spider_name=instagram&start_requests=true&max_requests=15')
+    curl_temp.setopt(curl_temp.WRITEFUNCTION, io_temp.write)
+    curl_temp.perform()
+    curl_temp.close()
+
+    body = io_temp.getvalue().decode('UTF-8')
+    items = json.loads(body)['items']
+    db.users.update_one({'vk_id': "22501333"}, { '$set': { 'parse': items }})
+    return jsonify(items)
