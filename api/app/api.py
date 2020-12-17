@@ -180,9 +180,6 @@ def get_items():
             }
             items_data.append(obj);
 
-    # POST WORK: curl -XPOST -d '{ "spider_name":"instagram", "max_requests":"30", "start_requests": true, "account":"underwaterstuffs"}' "http://localhost:9080/crawl.json"
-    # GET WORK: curl_temp.setopt(curl_temp.URL, 'http://localhost:9080/crawl.json?spider_name=instagram&start_requests=true&max_requests=15')
-
     for item_data in items_data:
         curl_temp = pycurl.Curl()
         io_temp = io.BytesIO()
