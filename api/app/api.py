@@ -187,7 +187,7 @@ def get_items():
         curl_temp.setopt(curl_temp.WRITEFUNCTION, io_temp.write)
         curl_temp.setopt(curl_temp.POST, True)
         account = item_data['account']
-        post = '{{ "spider_name":"instagram", "max_requests":"1", "start_requests": true, "account":"{}"}}'.format(account)
+        post = '{{ "spider_name":"instagram", "max_requests":"20", "start_requests": true, "account":"{}"}}'.format(account)
         print(post)
         curl_temp.setopt(curl_temp.POSTFIELDS, post)
         curl_temp.perform()
