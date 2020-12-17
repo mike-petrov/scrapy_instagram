@@ -117,20 +117,6 @@ def parse_add(jwt):
     except:
         return jsonify({'server': 'error'}), 400
 
-@app.route('/parse/get', methods=['POST'])
-@token_required
-def parse_get(jwt):
-    try:
-        x = request.json
-
-        user = db.users.find_one({'vk_id': jwt['user_vk_id']}, {'_id': False, 'parse': True})
-        if user:
-            return jsonify(user['parse'])
-        else:
-            return jsonify({'server': 'error'}), 400
-    except:
-        return jsonify({'server': 'error'}), 400
-
 @app.route('/parse/delete', methods=['POST'])
 @token_required
 def parse_delete(jwt):
@@ -180,14 +166,46 @@ def search(jwt):
 
 @app.route('/scrapy', methods=['POST'])
 def get_items():
-    curl_temp = pycurl.Curl()
-    io_temp = io.BytesIO()
-    curl_temp.setopt(curl_temp.URL, 'http://localhost:9080/crawl.json?spider_name=instagram&start_requests=true&max_requests=15')
-    curl_temp.setopt(curl_temp.WRITEFUNCTION, io_temp.write)
-    curl_temp.perform()
-    curl_temp.close()
+    users = db.users.find({}, {'_id': False, 'parse': True, 'id': True})
 
-    body = io_temp.getvalue().decode('UTF-8')
-    items = json.loads(body)['items']
-    db.users.update_one({'vk_id': "22501333"}, { '$set': { 'parse': items }})
-    return jsonify(items)
+    items_data = []
+    users_parse = []
+    for user in users:
+        users_parse.append(user);
+        for index, parse_item in enumerate(user['parse']):
+            obj = {
+                'user_id': user['id'],
+                'account_index': index,
+                'account': parse_item['account']
+            }
+            items_data.append(obj);
+
+    # POST WORK: curl -XPOST -d '{ "spider_name":"instagram", "max_requests":"30", "start_requests": true, "account":"underwaterstuffs"}' "http://localhost:9080/crawl.json"
+    # GET WORK: curl_temp.setopt(curl_temp.URL, 'http://localhost:9080/crawl.json?spider_name=instagram&start_requests=true&max_requests=15')
+
+    for item_data in items_data:
+        curl_temp = pycurl.Curl()
+        io_temp = io.BytesIO()
+        curl_temp.setopt(curl_temp.URL, 'http://localhost:9080/crawl.json')
+        curl_temp.setopt(curl_temp.WRITEFUNCTION, io_temp.write)
+        curl_temp.setopt(curl_temp.POST, True)
+        account = item_data['account']
+        post = '{{ "spider_name":"instagram", "max_requests":"1", "start_requests": true, "account":"{}"}}'.format(account)
+        print(post)
+        curl_temp.setopt(curl_temp.POSTFIELDS, post)
+        curl_temp.perform()
+        curl_temp.close()
+        body = io_temp.getvalue().decode('UTF-8')
+        items = json.loads(body)['items']
+        print('!', len(items), items)
+
+        update_user_parse = []
+        for user_parse in users_parse:
+            if user_parse['id'] == item_data['user_id']:
+                index = item_data['account_index']
+                user_parse['parse'][index]['data'] = items
+                update_user_parse = user_parse['parse']
+
+        db.users.update_one({'id': item_data['user_id']}, { '$set': { 'parse': update_user_parse }})
+
+    return jsonify({'status': 'true'})
