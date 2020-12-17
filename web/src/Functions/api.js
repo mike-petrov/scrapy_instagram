@@ -70,3 +70,11 @@ export function deleteParse(json, onPopup) {
         });
     });
 }
+
+export function dataSearch(json, onPopup) {
+    return new Promise((resolve) => {
+        serverRequest('/search', json, onPopup).then((res) => {
+            resolve(res.data);
+        });
+    });
+}

@@ -21,6 +21,7 @@ import {
 } from '@vkontakte/vkui';
 import {
 	Icon56CompassOutline,
+	Icon56Stars3Outline,
 	Icon16Cancel,
 	Icon16Done,
 	Icon24Dismiss,
@@ -34,6 +35,7 @@ import {
     getParse,
 		addParse,
 		deleteParse,
+		dataSearch,
 } from './Functions/api';
 import './App.css';
 
@@ -43,9 +45,10 @@ const App = () => {
 	const [scheme, setScheme] = useState('client_light');
 	const [activeModal, setActiveModal] = useState(null);
 
-	const [parseList, setParseList] = useState([]);
+	const [parseList, setParseList] = useState(null);
 	const [inputAdd, setInputAdd] = useState('');
 	const [search, setSearch] = useState('');
+	const [searchList, setSearchList] = useState(null);
 
 	const [posts, setPosts] = useState([]);
 	const [popup, setPopup] = useState({
@@ -104,8 +107,18 @@ const App = () => {
 		setActiveModal(type);
 	};
 
-	const onSearch = (current = null, text = null) => {
-		setPopup({ current, text });
+	const onSearch = (e) => {
+		const searchValue = e.target.value;
+		setSearch(searchValue);
+		if (searchValue.length !== 0) {
+			dataSearch({ text: searchValue }, onPopup).then((e) => {
+				if (e.status !== 'error') {
+					setSearchList(e);
+				}
+			});
+		} else {
+			setSearchList(null);
+		}
 	};
 
 	const modal = (
@@ -193,60 +206,87 @@ const App = () => {
 				>
 					<Panel id="home">
 						<PanelHeader>InstaParse</PanelHeader>
-						{console.log(parseList)}
-							{Object.keys(parseList).length === 0 ? (
-								<Placeholder
-			            icon={<Icon56CompassOutline />}
-			            action={<Button size="l" mode="tertiary" onClick={() => { onModal('add'); }}>Добавить</Button>}
-			            stretched
-			          >
-			            Нет аккаунтов для парсинга
-			          </Placeholder>
-							) : (
+							{parseList ? (
 								<>
-									<Group header={<Header mode="secondary">Активные аккаунты</Header>}>
-		                <List>
-		                  {parseList.map((item, index) => (
-		                    <SimpleCell
-													key={item.account}
-													after={
-														<Icon24Dismiss
-															fill="var(--accent)"
-															onClick={(e) => {
-																deleteParse({
-																	text: item.account,
-																}, onPopup).then((e) => {
-																	if (e.status !== 'error') {
-																		onPopup('success', 'Успешно');
-																		setParseList(e);
-																	}
-																});
-																// parseList.splice(index, 1);
-																// setParseList(prevParseList => ([...parseList]));
-																bridge.send("VKWebAppTapticImpactOccurred", {"style": "medium"}).catch(() => {});
-																e.stopPropagation();
-															}}
-														/>
-													}
-												>{item.account}</SimpleCell>
-		                  ))}
-		                </List>
-		              </Group>
-									<Group header={<Header mode="secondary">Данные</Header>}>
-										<Search value={search} onChange={onSearch} after={null} />
-										{parseList.data && parseList.data.map((post) => (
-											<SimpleCell
-												key={post.text}
-												before={<Avatar mode="image" src={post.image} />}
-												description={post.hashtag}
-											>{post.text}</SimpleCell>
-										))}
-										{parseList.data && parseList.data.length === 0 && (
-											<Div>Данные еще не обновились</Div>
-										)}
-									</Group>
+									{Object.keys(parseList).length === 0 ? (
+										<Placeholder
+					            icon={<Icon56CompassOutline />}
+					            action={<Button size="l" mode="tertiary" onClick={() => { onModal('add'); }}>Добавить</Button>}
+					            stretched
+					          >
+					            Нет аккаунтов для парсинга
+					          </Placeholder>
+									) : (
+										<>
+											<Group header={<Header mode="secondary">Активные аккаунты</Header>}>
+				                <List>
+				                  {parseList.map((item, index) => (
+				                    <SimpleCell
+															key={item.account}
+															after={
+																<Icon24Dismiss
+																	fill="var(--accent)"
+																	onClick={(e) => {
+																		deleteParse({
+																			text: item.account,
+																		}, onPopup).then((e) => {
+																			if (e.status !== 'error') {
+																				onPopup('success', 'Успешно');
+																				setParseList(e);
+																			}
+																		});
+																		// parseList.splice(index, 1);
+																		// setParseList(prevParseList => ([...parseList]));
+																		bridge.send("VKWebAppTapticImpactOccurred", {"style": "medium"}).catch(() => {});
+																		e.stopPropagation();
+																	}}
+																/>
+															}
+														>{item.account}</SimpleCell>
+				                  ))}
+				                </List>
+				              </Group>
+											<Group header={<Header mode="secondary">Данные</Header>}>
+												<Search value={search} onChange={onSearch} after={null} />
+												{searchList ? (
+													<>
+														{searchList.map((post) => (
+															<SimpleCell
+																key={post.text}
+																before={<Avatar mode="image" src={post.image_url} />}
+																description={post.date_posted}
+															>{post.captions}</SimpleCell>
+														))}
+														{parseList.data && parseList.data.length === 0 && (
+															<Div>Данные еще не обновились</Div>
+														)}
+													</>
+												) : (
+													<>
+														{parseList.map((item, index) => item.data.map((post) => (
+															<SimpleCell
+																key={post.date_posted}
+																before={<Avatar mode="image" src={post.image_url} />}
+																description={post.date_posted}
+															>{post.captions}</SimpleCell>
+														)))}
+														{parseList.data && parseList.data.length === 0 && (
+															<Div>Данные еще не обновились</Div>
+														)}
+													</>
+												)}
+											</Group>
+										</>
+									)}
 								</>
-							)}
+						) : (
+							<Placeholder
+								icon={<Icon56Stars3Outline />}
+								stretched
+							>
+								Загрузка
+							</Placeholder>
+						)}
 					</Panel>
 				</View>
 			</ConfigProvider>
