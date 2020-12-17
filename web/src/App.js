@@ -245,6 +245,14 @@ const App = () => {
 														>{item.account}</SimpleCell>
 				                  ))}
 				                </List>
+												<Div style={{display: 'flex', padding: 0 }}>
+													<Button
+														size="l"
+														stretched
+														mode="tertiary"
+														onClick={() => { onModal('add'); }}
+													>Добавить</Button>
+												</Div>
 				              </Group>
 											<Group header={<Header mode="secondary">Данные</Header>}>
 												<Search value={search} onChange={onSearch} after={null} />
@@ -257,8 +265,8 @@ const App = () => {
 																description={post.date_posted}
 															>{post.captions}</SimpleCell>
 														))}
-														{parseList.data && parseList.data.length === 0 && (
-															<Div>Данные еще не обновились</Div>
+														{searchList.length === 0 && (
+															<Div>Ничего не найдено</Div>
 														)}
 													</>
 												) : (
