@@ -4,7 +4,6 @@ from urllib.parse import urlencode
 import json
 from datetime import datetime
 API = '95413e818c49686b5d90a4bd8834bb54'
-user_accounts = ['nike', 'adidas']
 
 
 def get_url(url):
@@ -12,15 +11,13 @@ def get_url(url):
     proxy_url = 'http://api.scraperapi.com/?' + urlencode(payload)
     return proxy_url
 
-
 class InstagramSpider(scrapy.Spider):
     name = 'instagram'
     allowed_domains = ['api.scraperapi.com']
 
     def start_requests(self):
-        for username in user_accounts:
-            url = f'https://www.instagram.com/{username}/?hl=en'
-            yield scrapy.Request(get_url(url), callback=self.parse)
+        url = f'https://www.instagram.com/{self.account}/?hl=en'
+        yield scrapy.Request(get_url(url), callback=self.parse)
 
     def parse(self, response):
         x = response.xpath("//script[starts-with(.,'window._sharedData')]/text()").extract_first()
