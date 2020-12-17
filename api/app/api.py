@@ -151,6 +151,33 @@ def parse_delete(jwt):
     except:
         return jsonify({'server': 'error'}), 400
 
+@app.route('/search', methods=['POST'])
+@token_required
+def search(jwt):
+    try:
+        x = request.json
+
+        user = db.users.find_one({'vk_id': jwt['user_vk_id']}, {'_id': False, 'parse': True})
+        if user:
+
+            items = []
+            if '@' in x['text']:
+                for parse_account in user['parse']:
+                    if x['text'][1:] in parse_account['account']:
+                        for parse_item in parse_account['data']:
+                            items.append(parse_item);
+            else:
+                for parse_account in user['parse']:
+                    for parse_item in parse_account['data']:
+                        if x['text'] in parse_item['captions']:
+                            items.append(parse_item);
+
+            return jsonify(items)
+        else:
+            return jsonify({'server': 'error'}), 400
+    except:
+        return jsonify({'server': 'error'}), 400
+
 @app.route('/scrapy', methods=['POST'])
 def get_items():
     curl_temp = pycurl.Curl()
